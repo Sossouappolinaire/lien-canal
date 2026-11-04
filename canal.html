@@ -18,12 +18,12 @@ a.b{display:block;background:linear-gradient(135deg,#2aa7ff,#1a6dff);color:#fff;
 <div class="c" id="c"><p>Chargement…</p></div>
 <script>
 var SB = "https://ooccarepvhiqireyxjdl.supabase.co";
-var KEY = "sb_publishable_jCxBMntWstbkdcRdsi4EVA_Tl-X4Jt6";
+var KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9vY2NhcmVwdmhpcWlyZXl4amRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxODM2ODYsImV4cCI6MjEwODc1OTY4Nn0.vpNQIpfvyDn7ESEm9hLHMEsmFFzqIWb9YlDrL8YNyrg";
 var box = document.getElementById("c");
-function erreur() {
+function erreur(msg) {
   box.innerHTML = "";
   var h = document.createElement("h1"); h.textContent = "Lien invalide";
-  var p = document.createElement("p"); p.textContent = "Ce lien n'existe pas ou n'est plus valide.";
+  var p = document.createElement("p"); p.textContent = (typeof msg === "string" && msg) ? msg : "Ce lien n'existe pas ou n'est plus valide.";
   box.appendChild(h); box.appendChild(p);
 }
 var code = (new URLSearchParams(location.search).get("c") || location.hash.replace("#", "")).trim();
@@ -33,7 +33,10 @@ else {
     method: "POST",
     headers: { "apikey": KEY, "Authorization": "Bearer " + KEY, "Content-Type": "application/json" },
     body: JSON.stringify({ p_code: code })
-  }).then(function (r) { return r.json(); }).then(function (d) {
+  }).then(function (r) {
+    if (!r.ok) { throw new Error("Erreur serveur (" + r.status + ")"); }
+    return r.json();
+  }).then(function (d) {
     if (!d || !d[0] || !/^https:\/\/(t\.me|telegram\.me)\//i.test(d[0].lien)) { erreur(); return; }
     document.title = d[0].nom;
     box.innerHTML = "";
@@ -42,7 +45,7 @@ else {
     var a = document.createElement("a"); a.className = "b"; a.textContent = "Ouvrir";
     a.href = d[0].lien; a.rel = "noopener";
     box.appendChild(h); box.appendChild(p); box.appendChild(a);
-  }).catch(erreur);
+  }).catch(function (e) { erreur(e && e.message ? e.message : "Connexion impossible."); });
 }
 </script>
 </body>
